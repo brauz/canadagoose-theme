@@ -1,0 +1,65 @@
+{% if product.metafields.dotapparel21.siblings == blank %}
+  {% assign colorList = product.metafields.dotapparel21.siblings | json %}
+{% else %}
+  {% assign colorList = product.metafields.dotapparel21.siblings %}
+{% endif %}
+{% assign arrQuantities = '' %}
+{% for variant in product.variants %}
+  {% assign combinedValue = variant.inventory_quantity | append: variant.id %}
+  {% assign arrQuantities = arrQuantities | append: combinedValue | append: ',' %}
+{% endfor %}
+<script>
+  var productState = {
+    initProduct: {{ product | json }},
+    colorList: {{ colorList }},
+    arrQuanti: {{ arrQuantities | json }},
+    styleCode: {{ product.metafields.products.style_code | json }},
+    styleCodeLinker: {{ product.metafields.custom.stylecode_linker | json }},
+    initVariant: {{ product.selected_or_first_available_variant | json }},
+    variants: {{- product.variants | json -}},
+    isGiftCard: {% if template contains 'gift-card' or product.gift_card? %}true{%- else -%}false{% endif %},
+    afterpayEnable: {{ settings.product_afterpay_enable | json }},
+    fabricTag: {{ shop.metafields.globals.fabric_tag | json }},
+    fabricText: {{ shop.metafields.globals.fabric_text | json }},
+    shortDescription: "{{ product.metafields.global.description_tag }}",
+    fabricDescription: {{ shop.metafields.globals.fabric_description | json }},
+    fabricImageUrl: {{ shop.metafields.globals.image_fabric_tag | file_url | json }},
+    flagshipFitCopy: {
+      classicFitCopy: {{ shop.metafields.globals.classic_fit_copy | json }},
+      fusionFitCopy: {{ shop.metafields.globals.fusion_fit_copy | json }},
+    },
+    discSwatches: {
+      blackDiscSwatch: {{ shop.metafields.globals.black_disc_swatch | file_url | json }},
+      classicDiscSwatch: {{ shop.metafields.globals.classic_disc_swatch | file_url | json }},
+      tonalDiscSwatch: {{ shop.metafields.globals.tonal_disc_swatch | file_url | json }},
+      whiteDiscSwatch: {{ shop.metafields.globals.white_disc_swatch | file_url | json }},
+    }
+  }
+  
+  var pdpState = {
+    translates: {
+      notifyMe: {{ 'product.general.notify_me' | t | json }},
+      notifyMeWhenAvailable: {{ 'product.general.notify_me_when_available' | t | json }},
+      subtextNotifyMe: {{ 'product.general.subtext_notify_me' | t | json }},
+      comingSoon: {{ 'product.general.coming_soon' | t | json }},
+      soldOut: {{ 'product.general.sold_out' | t | json }},
+      buyNowPayLate: {{ 'product.general.buy_now_pay_late' | t | json }},
+      info: {{ 'product.general.info' | t | json }},
+      priceText: {{ 'product.general.price_text' | t | json }}
+    }
+  }
+
+  function assignVariantMetafields() {
+    if (!productState || !productState.initProduct || !productState.initProduct.variants || !productState.initProduct.variants.length) {
+      return
+    }
+    {% for variant in product.variants %}
+      if (productState.initProduct.variants[{{- forloop.index0 -}}]) {
+        productState.initProduct.variants[{{- forloop.index0 -}}].metafields = {% render 'product-variant-json-meta', variant: variant %}
+      }
+  {% endfor %}
+  }
+  assignVariantMetafields()
+</script>
+
+<product-form></product-form>
